@@ -28,6 +28,9 @@ on:
       version:
         description: "Version of the plugin"
         value: ${{ jobs.build_plugin.outputs.version }}
+      tag:
+        description: "Tag of the plugin"
+        value: ${{ steps.version_format.outputs.tag }}
 
 jobs:
   build_plugin:
@@ -35,6 +38,7 @@ jobs:
 
     outputs:
       version: ${{ steps.semver.outputs.version }}
+      tag: ${{ steps.version_format.outputs.tag }}
 
     strategy:
       matrix:
@@ -162,7 +166,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: contains(matrix.node-version, '20.x') 
         with:
-          name: node-${{ steps.version_format.outputs.tag }}-${{ steps.semver.outputs.version }}-source
+          name: node-${{ steps.version_format.outputs.tag }}-${{ steps.semver.outputs.version }}
           path: ./ci-build-dist/*
           if-no-files-found: error
           retention-days: 7
