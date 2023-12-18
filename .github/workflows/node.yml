@@ -92,6 +92,39 @@ jobs:
       - run: npm ci
       - run: npm run build
 
+      - name: Check for test script
+        id: check
+        run: |
+          if jq -e '.scripts.test' package.json > /dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+          if [[ ${{ secrets.CODECOV_TOKEN }} == "" ]]; then
+            echo "codecov=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "codecov=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run tests
+        if: steps.check.outputs.exists == 'true'
+        run: npm run test
+
+      - name: Test Report ${{ matrix.node-version }}
+        if: steps.check.outputs.exists == 'true'
+        uses: dorny/test-reporter@v1.5.0
+        with:
+          name: Tests
+          path: junit.json
+          reporter: mocha-json
+
+      - name: Upload coverage reports to Codecov
+        if: contains(matrix.node-version, '18.x') && steps.check.outputs.exists == 'true' && steps.check.outputs.codecov == 'true'
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: coverage
+
       - run: mkdir ci-build-dist
       - name: Create artifact
         run: |
