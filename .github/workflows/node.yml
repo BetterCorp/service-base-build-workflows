@@ -17,6 +17,9 @@ on:
       NPM_EMAIL:
         description: "NPM Email"
         required: false
+      CODECOV_TOKEN:
+        description: "Codecov Token"
+        required: false
     outputs:
       version:
         description: "Version of the plugin"
@@ -107,6 +110,15 @@ jobs:
           input: 'package.json'
           script: '.scripts.test'
 
+      - id: codecovcheck
+        run: |
+          if [[ ${{ secrets.CODECOV_TOKEN }} == "" ]]; then
+            echo "codecov=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "codecov=true" >> "$GITHUB_OUTPUT"
+          fi
+        shell: bash
+
       - run: npm run lint
         if: steps.scriptslint.outputs.output != 'null'
 
@@ -125,7 +137,7 @@ jobs:
           reporter: mocha-json
 
       - name: Upload coverage reports to Codecov
-        if: contains(matrix.node-version, '18.x') && steps.scriptstest.outputs.output != 'null' && "${{ secrets.CODECOV_TOKEN }}" != ''
+        if: contains(matrix.node-version, '18.x') && steps.scriptstest.outputs.output != 'null' && steps.codecovcheck.outputs.codecov == 'true'
         uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
