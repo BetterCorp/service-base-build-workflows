@@ -52,16 +52,16 @@ jobs:
         run: |
           BRANCH_NAME=${GITHUB_REF#refs/heads/}
           if [[ $BRANCH_NAME == "main" || $BRANCH_NAME == "master" ]]; then
-            echo "format=${major}.${minor}.${patch}-rc${increment}" >> "$GITHUB_OUTPUT"
+            echo "format=\${major}.\${minor}.\${patch}-rc\${increment}" >> "$GITHUB_OUTPUT"
             echo "tag=rc" >> "$GITHUB_OUTPUT"
           elif [[ $BRANCH_NAME == "develop" || $BRANCH_NAME == "development" ]]; then
-            echo "format=${major}.${minor}.${patch}-beta${increment}" >> "$GITHUB_OUTPUT"
+            echo "format=\${major}.\${minor}.\${patch}-beta\${increment}" >> "$GITHUB_OUTPUT"
             echo "tag=beta" >> "$GITHUB_OUTPUT"
           elif [[ $GITHUB_REF == refs/tags/* ]]; then
-            echo "format=${major}.${minor}.${patch}" >> "$GITHUB_OUTPUT"
+            echo "format=\${major}.\${minor}.\${patch}" >> "$GITHUB_OUTPUT"
             echo "tag=latest" >> "$GITHUB_OUTPUT"
           else
-            echo "format=${major}.${minor}.${patch}-alpha${increment}-${BRANCH_NAME}" >> "$GITHUB_OUTPUT"
+            echo "format=\${major}.\${minor}.\${patch}-alpha\${increment}-${BRANCH_NAME}" >> "$GITHUB_OUTPUT"
             echo "tag=alpha" >> "$GITHUB_OUTPUT"
           fi
 
