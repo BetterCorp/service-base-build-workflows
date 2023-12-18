@@ -64,6 +64,7 @@ jobs:
             echo "format=\${major}.\${minor}.\${patch}-alpha\${increment}-${BRANCH_NAME}" >> "$GITHUB_OUTPUT"
             echo "tag=alpha" >> "$GITHUB_OUTPUT"
           fi
+        shell: bash
 
       - name: semver
         id: semver
@@ -86,6 +87,7 @@ jobs:
             git config user.email "${{ secrets.NPM_EMAIL }}";
             echo "Hello $(git config --get user.name)";
           fi
+        shell: bash
 
       - run: npm version ${{ steps.semver.outputs.version }}
 
@@ -109,6 +111,7 @@ jobs:
           else
             echo "codecov=true" >> "$GITHUB_OUTPUT"
           fi
+        shell: bash
 
       - run: npm run lint
         if: steps.check.outputs.lint == 'true'
