@@ -7,8 +7,17 @@ on:
         type: boolean
         description: "Publish/No publish"
         required: true
+        default: false
+      PRIVATE_DEPS:
+        type: boolean
+        description: "NPM Install requires a token to install private packages"
+        required: false
+        default: false
     secrets:
-      NPM_TOKEN_PUB:
+      NPM_READ_TOKEN:
+        description: "NPM Token to read private dependencies"
+        required: false
+      NPM_PUBLISH_TOKEN:
         description: "NPM Token to publish"
         required: false
       NPM_NAME:
@@ -46,6 +55,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
+          registry-url: 'https://registry.npmjs.org'
 
       - run: npm i -g typescript ts-node
       - run: tsc -v ; ts-node -v ; node -v
@@ -96,6 +106,8 @@ jobs:
       - run: npm version ${{ steps.semver.outputs.version }}
 
       - run: npm ci
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
 
       - uses: cloudposse/github-action-jq@main
         id: scriptslint
@@ -160,14 +172,13 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-      - run: rm -f ~/.npmrc ; rm -f ./.npmrc ; echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN_PUB }}" > ./.npmrc ; echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN_PUB }}" > ~/.npmrc
-        if: contains(matrix.node-version, '20.x') && inputs.PUBLISH == true
-        
       - run: npm whoami
         if: contains(matrix.node-version, '20.x') && inputs.PUBLISH == true
 
       - run: npm publish --tag ${{ steps.version_format.outputs.tag }}
         if: contains(matrix.node-version, '20.x') && inputs.PUBLISH == true
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
 
       - name: cleanup
         if: always()
