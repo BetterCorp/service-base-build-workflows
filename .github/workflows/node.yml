@@ -162,7 +162,7 @@ jobs:
           reporter: mocha-json
 
       - name: Upload coverage reports to Codecov
-        if: contains(matrix.node-version, '18.x') && steps.scriptstest.outputs.output != 'null' && steps.codecovcheck.outputs.codecov == 'true'
+        if: contains(matrix.node-version, '20.x') && steps.scriptstest.outputs.output != 'null' && steps.codecovcheck.outputs.codecov == 'true'
         uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
