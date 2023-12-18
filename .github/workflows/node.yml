@@ -67,7 +67,7 @@ jobs:
 
       - name: semver
         id: semver
-        uses: paulhatch/semantic-version@v4.0.3
+        uses: paulhatch/semantic-version@v5
         with:
           tag_prefix: "v"
           major_pattern: "(MAJOR)"
@@ -92,25 +92,18 @@ jobs:
       - run: npm ci
       - run: npm run build
 
+      - run: mkdir ci-build-dist
       - name: Create artifact
         run: |
-          tar -czvf as-built.tar.gz --exclude=node_modules --exclude=.git ./
+          tar -czvf ci-build-dist/as-built.tar.gz --exclude=node_modules --exclude=.git --exclude=ci-build-dist ./
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: as-built
-          path: ./as-built.tar.gz
-          retention-days: 7
-
-      - run: mkdir package-dist
-      - run: npm pack --pack-destination package-dist/
+      - run: npm pack --pack-destination ci-build-dist/
       
-      - name: Upload Package
-        uses: actions/upload-artifact@v2
+      - name: Upload Source
+        uses: actions/upload-artifact@v4
         with:
           name: built-package
-          path: ./package-dist/
+          path: ./ci-build-dist/
           retention-days: 7
 
       - run: rm -f ~/.npmrc ; rm -f ./.npmrc ; echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN_PUB }}" > ./.npmrc
