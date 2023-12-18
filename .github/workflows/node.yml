@@ -35,7 +35,7 @@ on:
         value: ${{ jobs.build_plugin.outputs.version }}
       tag:
         description: "Tag of the plugin"
-        value: ${{ steps.version_format.outputs.tag }}
+        value: ${{ jobs.build_plugin.outputs.tag }}
 
 jobs:
   build_plugin:
