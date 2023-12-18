@@ -96,12 +96,12 @@ jobs:
       - name: Check for test script
         id: check
         run: |
-          if jq -e '.scripts.lint' package.json > /dev/null 2>&1; then
+          if ( jq -e '.scripts.lint' package.json > /dev/null 2>&1 ); then
             echo "lint=true" >> "$GITHUB_OUTPUT"
           else
             echo "lint=false" >> "$GITHUB_OUTPUT"
           fi
-          if jq -e '.scripts.test' package.json > /dev/null 2>&1; then
+          if ( jq -e '.scripts.test' package.json > /dev/null 2>&1 ); then
             echo "exists=true" >> "$GITHUB_OUTPUT"
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
