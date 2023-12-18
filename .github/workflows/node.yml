@@ -8,6 +8,11 @@ on:
         description: "Publish/No publish"
         required: true
         default: false
+      WORKING_DIR:
+        type: string
+        description: "Working directory"
+        required: false
+        default: "."
     secrets:
       NPM_READ_TOKEN:
         description: "NPM Token to read private dependencies"
@@ -52,12 +57,15 @@ jobs:
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
+          cache-dependency-path: ${{ inputs.WORKING_DIR }}/package-lock.json
           node-version: ${{ matrix.node-version }}
           cache: "npm"
           registry-url: 'https://registry.npmjs.org'
 
       - run: npm i -g typescript ts-node
+        working-directory: ${{ inputs.WORKING_DIR }}
       - run: tsc -v ; ts-node -v ; node -v
+        working-directory: ${{ inputs.WORKING_DIR }}
 
       - name: Set version format
         id: version_format
@@ -103,8 +111,10 @@ jobs:
         shell: bash
 
       - run: npm version ${{ steps.semver.outputs.version }} --no-git-tag-version
+        working-directory: ${{ inputs.WORKING_DIR }}
 
       - run: npm ci
+        working-directory: ${{ inputs.WORKING_DIR }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_READ_TOKEN }}
 
@@ -112,14 +122,14 @@ jobs:
         id: scriptslint
         with:
           compact: true
-          input: 'package.json'
+          input: "${{ inputs.WORKING_DIR }}/package.json"
           script: '.scripts.lint'
 
       - uses: cloudposse/github-action-jq@main
         id: scriptstest
         with:
           compact: true
-          input: 'package.json'
+          input: "${{ inputs.WORKING_DIR }}/package.json"
           script: '.scripts.test'
 
       - id: codecovcheck
@@ -133,19 +143,22 @@ jobs:
 
       - run: npm run lint
         if: steps.scriptslint.outputs.output != 'null'
+        working-directory: ${{ inputs.WORKING_DIR }}
 
       - run: npm run build
+        working-directory: ${{ inputs.WORKING_DIR }}
 
       - name: Run tests
         if: steps.scriptstest.outputs.output != 'null'
         run: npm run test
+        working-directory: ${{ inputs.WORKING_DIR }}
 
       - name: Test Report ${{ matrix.node-version }}
         if: steps.scriptstest.outputs.output != 'null'
         uses: dorny/test-reporter@v1.5.0
         with:
           name: Tests
-          path: junit.json
+          path: "${{ inputs.WORKING_DIR }}/junit.json"
           reporter: mocha-json
 
       - name: Upload coverage reports to Codecov
@@ -153,34 +166,34 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          directory: coverage
+          directory: "${{ inputs.WORKING_DIR }}/coverage"
 
       - run: mkdir ci-build-dist
       - name: Create artifact
+        working-directory: ${{ inputs.WORKING_DIR }}
         run: |
           tar -czvf ci-build-dist/as-built.tar.gz --exclude=node_modules --exclude=.git --exclude=ci-build-dist ./
 
       - run: npm pack --pack-destination ci-build-dist/
+        working-directory: ${{ inputs.WORKING_DIR }}
       
       - name: Upload Source
         uses: actions/upload-artifact@v4
         if: contains(matrix.node-version, '20.x') 
         with:
           name: node-${{ steps.version_format.outputs.tag }}-${{ steps.semver.outputs.version }}
-          path: ./ci-build-dist/*
+          path: "${{ inputs.WORKING_DIR }}/ci-build-dist/*"
           if-no-files-found: error
           retention-days: 7
 
       - run: npm whoami
         if: contains(matrix.node-version, '20.x') && inputs.PUBLISH == true
+        working-directory: ${{ inputs.WORKING_DIR }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
 
       - run: npm publish --tag ${{ steps.version_format.outputs.tag }}
         if: contains(matrix.node-version, '20.x') && inputs.PUBLISH == true
+        working-directory: ${{ inputs.WORKING_DIR }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
-
-      - name: cleanup
-        if: always()
-        run: rm -f ~/.npmrc ; rm -f ./.npmrc;
