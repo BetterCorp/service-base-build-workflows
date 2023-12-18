@@ -52,17 +52,17 @@ jobs:
         run: |
           BRANCH_NAME=${GITHUB_REF#refs/heads/}
           if [[ $BRANCH_NAME == "main" || $BRANCH_NAME == "master" ]]; then
-            echo "{format}=${major}.${minor}.${patch}-rc${increment}" >> "$GITHUB_OUTPUT"
-            echo "{tag}=rc" >> "$GITHUB_OUTPUT"
+            echo "format=${major}.${minor}.${patch}-rc${increment}" >> "$GITHUB_OUTPUT"
+            echo "tag=rc" >> "$GITHUB_OUTPUT"
           elif [[ $BRANCH_NAME == "develop" || $BRANCH_NAME == "development" ]]; then
-            echo "{format}=${major}.${minor}.${patch}-beta${increment}" >> "$GITHUB_OUTPUT"
-            echo "{tag}=beta" >> "$GITHUB_OUTPUT"
+            echo "format=${major}.${minor}.${patch}-beta${increment}" >> "$GITHUB_OUTPUT"
+            echo "tag=beta" >> "$GITHUB_OUTPUT"
           elif [[ $GITHUB_REF == refs/tags/* ]]; then
-            echo "{format}=${major}.${minor}.${patch}" >> "$GITHUB_OUTPUT"
-            echo "{tag}=latest" >> "$GITHUB_OUTPUT"
+            echo "format=${major}.${minor}.${patch}" >> "$GITHUB_OUTPUT"
+            echo "tag=latest" >> "$GITHUB_OUTPUT"
           else
-            echo "{format}=${major}.${minor}.${patch}-alpha${increment}-${BRANCH_NAME}" >> "$GITHUB_OUTPUT"
-            echo "{tag}=alpha" >> "$GITHUB_OUTPUT"
+            echo "format=${major}.${minor}.${patch}-alpha${increment}-${BRANCH_NAME}" >> "$GITHUB_OUTPUT"
+            echo "tag=alpha" >> "$GITHUB_OUTPUT"
           fi
 
       - name: semver
@@ -101,9 +101,11 @@ jobs:
       
       - name: Upload Source
         uses: actions/upload-artifact@v4
+        if: contains(matrix.node-version, '20.x') 
         with:
-          name: built-package
-          path: ./ci-build-dist/
+          name: node-${{ steps.version_format.outputs.tag }}-${{ steps.semver.outputs.version }}-source
+          path: ./ci-build-dist/*
+          if-no-files-found: error
           retention-days: 7
 
       - run: rm -f ~/.npmrc ; rm -f ./.npmrc ; echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN_PUB }}" > ./.npmrc
