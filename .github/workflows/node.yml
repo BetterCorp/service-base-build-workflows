@@ -7,16 +7,15 @@ on:
         type: boolean
         description: "Publish/No publish"
         required: true
-      NPM_NAME:
-        type: string
-        description: "NPM Name"
-        required: true
-      NPM_EMAIL:
-        type: string
-        description: "NPM Email"
-        required: true
     secrets:
       NPM_TOKEN_PUB:
+        description: "NPM Token to publish"
+        required: false
+      NPM_NAME:
+        description: "NPM Name"
+        required: false
+      NPM_EMAIL:
+        description: "NPM Email"
         required: false
     outputs:
       version:
@@ -78,9 +77,15 @@ jobs:
           bump_each_commit: true
 
       - run: |
-          git config user.name "${{ secrets.NPM_NAME }}";
-          git config user.email "${{ secrets.NPM_EMAIL }}";
-          echo "Hello $(git config --get user.name)";
+          if [[ ${{ secrets.NPM_NAME }} == "" || ${{ secrets.NPM_EMAIL }} == "" ]]; then
+            git config user.name "Builder Squirrel";
+            git config user.email "builder.squirrel@bettercorp.dev";
+            echo "Hello $(git config --get user.name)";
+          else
+            git config user.name "${{ secrets.NPM_NAME }}";
+            git config user.email "${{ secrets.NPM_EMAIL }}";
+            echo "Hello $(git config --get user.name)";
+          fi
 
       - run: npm version ${{ steps.semver.outputs.version }}
 
