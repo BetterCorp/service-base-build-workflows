@@ -7,6 +7,14 @@ on:
         type: boolean
         description: "Publish/No publish"
         required: true
+      NPM_NAME:
+        type: string
+        description: "NPM Name"
+        required: true
+      NPM_EMAIL:
+        type: string
+        description: "NPM Email"
+        required: true
     secrets:
       NPM_TOKEN_PUB:
         required: false
@@ -69,6 +77,11 @@ jobs:
           change_path: "./"
           bump_each_commit: true
 
+      - run: |
+          git config user.name "${{ secrets.NPM_NAME }}";
+          git config user.email "${{ secrets.NPM_EMAIL }}";
+          echo "Hello $(git config --get user.name)";
+
       - run: npm version ${{ steps.semver.outputs.version }}
 
       - run: npm ci
@@ -96,12 +109,6 @@ jobs:
           retention-days: 7
 
       - run: rm -f ~/.npmrc ; rm -f ./.npmrc ; echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN_PUB }}" > ./.npmrc
-        if: contains(matrix.node-version, '20.x') && inputs.PUBLISH == true
-
-      - run: |
-          git config user.name "${{ secrets.NPM_NAME }}";
-          git config user.email "${{ secrets.NPM_EMAIL }}";
-          echo "Hello $(git config --get user.name)";
         if: contains(matrix.node-version, '20.x') && inputs.PUBLISH == true
 
       - run: npm publish --tag ${{ steps.version_format.outputs.tag }}
