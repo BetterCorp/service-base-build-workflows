@@ -93,19 +93,23 @@ jobs:
 
       - run: npm ci
 
-      - name: Check for test script
+      - uses: cloudposse/github-action-jq@main
+        id: scriptslint
+        with:
+          compact: true
+          input: 'package.json'
+          script: '.scripts.lint'
+
+      - uses: cloudposse/github-action-jq@main
+        id: scriptstest
+        with:
+          compact: true
+          input: 'package.json'
+          script: '.scripts.test'
+
+      - name: Check for codecov script
         id: check
         run: |
-          if jq -e '.scripts.lint' package.json &>/dev/null; then
-            echo "lint=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "lint=false" >> "$GITHUB_OUTPUT"
-          fi
-          if jq -e '.scripts.test' package.json &>/dev/null; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-          fi
           if [[ ${{ secrets.CODECOV_TOKEN }} == "" ]]; then
             echo "codecov=false" >> "$GITHUB_OUTPUT"
           else
@@ -114,16 +118,16 @@ jobs:
         shell: bash
 
       - run: npm run lint
-        if: steps.check.outputs.lint == 'true'
+        if: steps.scriptslint.outputs.output != 'null'
 
       - run: npm run build
 
       - name: Run tests
-        if: steps.check.outputs.exists == 'true'
+        if: steps.scriptstest.outputs.output != 'null'
         run: npm run test
 
       - name: Test Report ${{ matrix.node-version }}
-        if: steps.check.outputs.exists == 'true'
+        if: steps.scriptstest.outputs.output != 'null'
         uses: dorny/test-reporter@v1.5.0
         with:
           name: Tests
@@ -131,7 +135,7 @@ jobs:
           reporter: mocha-json
 
       - name: Upload coverage reports to Codecov
-        if: contains(matrix.node-version, '18.x') && steps.check.outputs.exists == 'true' && steps.check.outputs.codecov == 'true'
+        if: contains(matrix.node-version, '18.x') && steps.scriptstest.outputs.output != 'null' && steps.check.outputs.codecov == 'true'
         uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
