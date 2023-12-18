@@ -98,7 +98,7 @@ jobs:
           fi
         shell: bash
 
-      - run: npm version ${{ steps.semver.outputs.version }}
+      - run: npm version ${{ steps.semver.outputs.version }} --no-git-tag-version
 
       - run: npm ci
         env:
