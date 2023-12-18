@@ -8,11 +8,6 @@ on:
         description: "Publish/No publish"
         required: true
         default: false
-      PRIVATE_DEPS:
-        type: boolean
-        description: "NPM Install requires a token to install private packages"
-        required: false
-        default: false
     secrets:
       NPM_READ_TOKEN:
         description: "NPM Token to read private dependencies"
@@ -107,7 +102,7 @@ jobs:
 
       - run: npm ci
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_READ_TOKEN }}
 
       - uses: cloudposse/github-action-jq@main
         id: scriptslint
@@ -174,6 +169,8 @@ jobs:
 
       - run: npm whoami
         if: contains(matrix.node-version, '20.x') && inputs.PUBLISH == true
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
 
       - run: npm publish --tag ${{ steps.version_format.outputs.tag }}
         if: contains(matrix.node-version, '20.x') && inputs.PUBLISH == true
