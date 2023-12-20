@@ -126,6 +126,13 @@ jobs:
           script: '.scripts.lint'
 
       - uses: cloudposse/github-action-jq@main
+        id: scriptbuildrelease
+        with:
+          compact: true
+          input: "${{ inputs.WORKING_DIR }}/package.json"
+          script: '.scripts.build-release'
+
+      - uses: cloudposse/github-action-jq@main
         id: scriptstest
         with:
           compact: true
@@ -145,7 +152,12 @@ jobs:
         if: steps.scriptslint.outputs.output != 'null'
         working-directory: ${{ inputs.WORKING_DIR }}
 
-      - run: npm run build
+      - run: npm run build-release
+        if: steps.scriptbuildrelease.outputs.output != 'null'
+        working-directory: ${{ inputs.WORKING_DIR }}
+
+      - run: tsc --p ./node_modules/@bettercorp/service-base/development/tsconfig-release.json
+        if: steps.scriptbuildrelease.outputs.output == 'null'
         working-directory: ${{ inputs.WORKING_DIR }}
 
       - name: Run tests
