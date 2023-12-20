@@ -130,7 +130,7 @@ jobs:
         with:
           compact: true
           input: "${{ inputs.WORKING_DIR }}/package.json"
-          script: '.scripts.build-release'
+          script: '.scripts["build-release"]'
 
       - uses: cloudposse/github-action-jq@main
         id: scriptstest
