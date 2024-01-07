@@ -156,7 +156,7 @@ jobs:
         if: steps.scriptbuildrelease.outputs.output != 'null'
         working-directory: ${{ inputs.WORKING_DIR }}
 
-      - run: rm -rfv ./lib && rm -f ./tsconfig-release-ci.jzon && cp ./node_modules/@bettercorp/service-base/development/tsconfig-release.json ./tsconfig-release-ci.jzon && --p ./tsconfig-release-ci.jzon
+      - run: rm -rfv ./lib && rm -f ./tsconfig-release-ci.jzon && cp ./node_modules/@bettercorp/service-base/development/tsconfig-release.json ./tsconfig-release-ci.json && tsc -p ./tsconfig-release-ci.json
         if: steps.scriptbuildrelease.outputs.output == 'null'
         working-directory: ${{ inputs.WORKING_DIR }}
 
