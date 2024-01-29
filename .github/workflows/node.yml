@@ -167,7 +167,7 @@ jobs:
 
       - name: Test Report ${{ matrix.node-version }}
         if: steps.scriptstest.outputs.output != 'null'
-        uses: dorny/test-reporter@v1.7.0
+        uses: dorny/test-reporter@v1.8.0
         with:
           name: Tests
           path: "${{ inputs.WORKING_DIR }}/junit.json"
