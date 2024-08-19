@@ -13,6 +13,11 @@ on:
         description: "Working directory"
         required: false
         default: "."
+      LINT:
+        type: boolean
+        description: "Lint code"
+        required: false
+        default: true
     secrets:
       NPM_READ_TOKEN:
         description: "NPM Token to read private dependencies"
@@ -149,7 +154,7 @@ jobs:
         shell: bash
 
       - run: npm run lint
-        if: steps.scriptslint.outputs.output != 'null'
+        if: steps.scriptslint.outputs.output != 'null' && inputs.LINT == true
         working-directory: ${{ inputs.WORKING_DIR }}
 
       - run: npm run build-release
